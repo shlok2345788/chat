@@ -26,6 +26,10 @@ function privateChat(io) {
 
       // Add to store
       addUser(socket.id, trimmedName);
+      
+      // Join username-specific room to receive direct messages
+      socket.join(trimmedName);
+      
       console.log(`User registered: "${trimmedName}" with socket ID: ${socket.id}`);
 
       // Confirm success
@@ -65,9 +69,9 @@ function privateChat(io) {
         id: `msg-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`
       };
 
-      // Broadcast ONLY inside the room containing the two users
-      io.to(roomId).emit('receive_private_message', formattedMessage);
-      console.log(`Message from ${sender} to ${receiver} in room ${roomId}`);
+      // Broadcast to both the sender and receiver's personal rooms to ensure delivery
+      io.to(sender).to(receiver).emit('receive_private_message', formattedMessage);
+      console.log(`Message from ${sender} to ${receiver} routed via personal rooms`);
     });
 
     // 4. Handle Disconnection
